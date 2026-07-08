@@ -14,6 +14,7 @@
     "paper": "cross-env MODE=paper tsx src/index.ts",
     "testnet": "cross-env MODE=testnet tsx src/index.ts",
     "live": "cross-env MODE=live tsx src/index.ts",
+    "dashboard": "tsx src/cli.ts dashboard",
     "bot": "tsx src/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",

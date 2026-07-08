@@ -409,6 +409,49 @@ program
     }),
   );
 
+// ---------------------------------------------------------------- dashboard
+
+program
+  .command('dashboard')
+  .description('start the read-only web dashboard (and the live pipeline) on localhost')
+  .option('--port <n>', 'port to listen on', '3000')
+  .option('--host <host>', 'host to bind (default 127.0.0.1, local-only)', '127.0.0.1')
+  .option('--no-pipeline', 'serve the dashboard only, without running the scanner/trader')
+  .action((opts: { port: string; host: string; pipeline: boolean }) =>
+    withApp(async (app) => {
+      const { startDashboard } = await import('./dashboard/server.js');
+      const handle = await startDashboard(app, { port: Number(opts.port), host: opts.host });
+      console.log(`\n  Dashboard:  ${handle.url}`);
+      console.log(`  Mode:       ${app.cfg.mode}${app.simulationOnly ? ' (simulation-only: mock adapter)' : ''}`);
+      console.log(`  ${opts.pipeline ? 'Live pipeline running (scanner + trading + positions).' : 'Dashboard only (pipeline disabled).'}`);
+      console.log('  Ctrl-C to stop.\n');
+
+      if (opts.pipeline) {
+        app.positions.start();
+        if (app.adapter instanceof MockDexAdapter) {
+          const mock = app.adapter;
+          const t = setInterval(() => mock.tickPrices(), 2000);
+          t.unref?.();
+        }
+        const stop = async () => {
+          await handle.close();
+          app.shutdown();
+          process.exit(0);
+        };
+        process.on('SIGINT', stop);
+        process.on('SIGTERM', stop);
+        await app.scanner.watch(); // runs until Ctrl-C
+      } else {
+        await new Promise<void>((resolve) => {
+          process.on('SIGINT', async () => {
+            await handle.close();
+            resolve();
+          });
+        });
+      }
+    }),
+  );
+
 program.parseAsync(process.argv).catch((err) => {
   console.error(`✖ ${err instanceof Error ? err.message : String(err)}`);
   process.exit(1);
