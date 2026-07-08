@@ -1,0 +1,39 @@
+{
+  "name": "robinhood-sniper-bot",
+  "version": "0.1.0",
+  "description": "Robinhood Chain token monitor and trading automation bot. Adapter-based DEX support, strict risk controls, testnet-first.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/index.ts",
+    "scan": "tsx src/cli.ts scan",
+    "paper": "cross-env MODE=paper tsx src/index.ts",
+    "testnet": "cross-env MODE=testnet tsx src/index.ts",
+    "live": "cross-env MODE=live tsx src/index.ts",
+    "bot": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.10.0",
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.7",
+    "pino": "^9.6.0",
+    "viem": "^2.28.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^20.17.0",
+    "cross-env": "^7.0.3",
+    "pino-pretty": "^13.0.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.1.1"
+  }
+}
