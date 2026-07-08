@@ -321,6 +321,31 @@ export class BotDb {
     return this.db.prepare('SELECT * FROM events ORDER BY id LIMIT ?').all(limit) as ReturnType<BotDb['listEvents']>;
   }
 
+  /** Recent price points for a token (oldest→newest) from stored `price` events. */
+  priceSeries(token: Address, limit = 40): number[] {
+    const rows = this.db
+      .prepare(
+        `SELECT json_extract(data_json, '$.price') AS price
+         FROM events
+         WHERE type = 'price' AND lower(json_extract(data_json, '$.token')) = ?
+         ORDER BY id DESC LIMIT ?`,
+      )
+      .all(token.toLowerCase(), limit) as Array<{ price: number | null }>;
+    return rows
+      .map((r) => r.price)
+      .filter((p): p is number => typeof p === 'number' && Number.isFinite(p))
+      .reverse();
+  }
+
+  /** Most recent stored safety report for a token, with parsed findings. */
+  latestSafety(token: Address): { passed: boolean; findings: import('../types/index.js').SafetyFinding[]; createdAt: string } | null {
+    const row = this.db
+      .prepare('SELECT passed, details_json, created_at FROM safety_checks WHERE token = ? ORDER BY id DESC LIMIT 1')
+      .get(token.toLowerCase()) as { passed: number; details_json: string; created_at: string } | undefined;
+    if (!row) return null;
+    return { passed: !!row.passed, findings: JSON.parse(row.details_json), createdAt: row.created_at };
+  }
+
   insertError(scope: string, message: string, data?: unknown) {
     this.db.prepare('INSERT INTO errors(scope, message, data_json) VALUES (?, ?, ?)').run(scope, message, data ? JSON.stringify(data, bigintReplacer) : null);
   }

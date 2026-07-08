@@ -417,12 +417,15 @@ program
   .option('--port <n>', 'port to listen on', '3000')
   .option('--host <host>', 'host to bind (default 127.0.0.1, local-only)', '127.0.0.1')
   .option('--no-pipeline', 'serve the dashboard only, without running the scanner/trader')
-  .action((opts: { port: string; host: string; pipeline: boolean }) =>
+  .option('--enable-actions', 'allow one-click buy/sell from the browser (paper/testnet only; never live)', false)
+  .action((opts: { port: string; host: string; pipeline: boolean; enableActions: boolean }) =>
     withApp(async (app) => {
       const { startDashboard } = await import('./dashboard/server.js');
-      const handle = await startDashboard(app, { port: Number(opts.port), host: opts.host });
+      const handle = await startDashboard(app, { port: Number(opts.port), host: opts.host, enableActions: opts.enableActions });
       console.log(`\n  Dashboard:  ${handle.url}`);
       console.log(`  Mode:       ${app.cfg.mode}${app.simulationOnly ? ' (simulation-only: mock adapter)' : ''}`);
+      const actionsState = opts.enableActions ? (app.cfg.mode === 'live' ? 'requested but DISABLED in live mode (CLI-only)' : 'ENABLED (paper/testnet)') : 'off (read-only)';
+      console.log(`  Actions:    ${actionsState}`);
       console.log(`  ${opts.pipeline ? 'Live pipeline running (scanner + trading + positions).' : 'Dashboard only (pipeline disabled).'}`);
       console.log('  Ctrl-C to stop.\n');
 
