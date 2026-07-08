@@ -64,7 +64,17 @@ Then verify: `npm run bot -- config-check` — it checks env validity, RPC reach
 
 ## 3. Add DEX addresses
 
-Robinhood Chain's DEX landscape is young and may change, so **no DEX addresses are hardcoded**. When you know which DEX you want to trade on, paste its contracts into `.env`:
+Robinhood Chain's DEX landscape is young and may change, so **no DEX addresses are hardcoded**.
+
+**Don't know the addresses?** Discover them from live on-chain data:
+
+```bash
+npm run discover -- --rpc https://rpc.mainnet.chain.robinhood.com/ --blocks 6000
+```
+
+This scans recent blocks for Uniswap-style pool-creation events, and prints the factory (the contract emitting them), the base token (the one in most pairs), and a router candidate (most common Swap caller). See [docs/ROBINHOOD_CHAIN.md](docs/ROBINHOOD_CHAIN.md#finding-the-dex-addresses-automatically) — as of 2026-07-08 the active mainnet venue is a Uniswap-v3-style DEX with a WETH base token. **Always verify the router/quoter on the explorer before trading.**
+
+When you know which DEX you want to trade on, paste its contracts into `.env`:
 
 ```ini
 DEX_TYPE=uniswap_v2            # or uniswap_v3
